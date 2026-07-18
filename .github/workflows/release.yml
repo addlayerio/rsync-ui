@@ -83,9 +83,9 @@ jobs:
           tagName: ${{ github.event.inputs.tag || github.ref_name }}
           releaseName: "rsync-ui ${{ github.event.inputs.tag || github.ref_name }}"
           releaseBody: "Download the installer for your OS from the assets below."
-          # Draft so both platforms upload their installers to the SAME release;
-          # review and click "Publish" once the run finishes. Set to false to
-          # publish automatically.
-          releaseDraft: true
+          # Auto-publish: both matrix jobs upload their installers to the same
+          # release and it goes live automatically. Set to true if you'd rather
+          # review a draft before publishing.
+          releaseDraft: false
           prerelease: false
           args: ${{ matrix.args }}
