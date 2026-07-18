@@ -8,6 +8,7 @@ mod store;
 mod tray;
 
 use std::collections::HashMap;
+use std::sync::atomic::{AtomicBool, Ordering};
 use std::sync::Mutex;
 
 use tauri::{Manager, WindowEvent};
@@ -44,14 +45,31 @@ pub fn run() {
                 store: Mutex::new(store),
                 jobs: Mutex::new(HashMap::new()),
                 running: Mutex::new(HashMap::new()),
+                tray_available: AtomicBool::new(false),
             });
 
             // Runs left "running" by a previous crash are marked interrupted.
             store::reconcile_stale(handle);
 
-            // Apply OS autostart preference and build the tray.
+            // Apply OS autostart preference.
             commands::apply_autostart(handle, autostart);
-            tray::create_tray(handle)?;
+
+            // Build the tray, tolerating environments without an appindicator
+            // library (some Flatpak runtimes) — creating it there panics inside
+            // the C binding, so we isolate that and keep the app running.
+            let tray_ok = std::panic::catch_unwind(std::panic::AssertUnwindSafe(|| {
+                tray::create_tray(handle).is_ok()
+            }))
+            .unwrap_or(false);
+            if !tray_ok {
+                eprintln!(
+                    "rsync-ui: system tray unavailable; running without a tray icon."
+                );
+            }
+            handle
+                .state::<AppState>()
+                .tray_available
+                .store(tray_ok, Ordering::Relaxed);
 
             // Register every enabled schedule.
             scheduler::reschedule_all(handle);
@@ -66,16 +84,12 @@ pub fn run() {
         })
         .on_window_event(|window, event| {
             if let WindowEvent::CloseRequested { api, .. } = event {
-                let close_to_tray = window
-                    .app_handle()
-                    .state::<AppState>()
-                    .store
-                    .lock()
-                    .unwrap()
-                    .settings
-                    .close_to_tray;
-                if close_to_tray {
-                    // Keep the scheduler alive in the tray instead of quitting.
+                let state = window.app_handle().state::<AppState>();
+                let close_to_tray = state.store.lock().unwrap().settings.close_to_tray;
+                let has_tray = state.tray_available.load(Ordering::Relaxed);
+                // Only hide-to-tray when a tray icon actually exists, otherwise
+                // the window would become unreachable.
+                if close_to_tray && has_tray {
                     api.prevent_close();
                     let _ = window.hide();
                 }

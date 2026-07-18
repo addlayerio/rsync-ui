@@ -20,6 +20,83 @@ finish-args:
   - --share=network
 
 modules:
+  # ---- Build-time helper: intltool (not in the GNOME SDK) ----
+  - name: intltool
+    cleanup:
+      - "*"
+    sources:
+      - type: archive
+        url: https://src.fedoraproject.org/repo/pkgs/rpms/intltool/intltool-0.51.0.tar.gz/12e517cac2b57a0121cda351570f1e63/intltool-0.51.0.tar.gz
+        sha256: 67c74d94196b153b774ab9f89b2fa6c6ba79352407037c8c14d5aeb334e959cd
+
+  # ---- System-tray stack (libayatana-appindicator) ----
+  # The GNOME runtime does not ship these, so the tray binding would fail to
+  # load its dynamic library and the app would crash on startup. Bundle them.
+  - name: libdbusmenu
+    buildsystem: autotools
+    build-options:
+      cflags: "-Wno-error -Wno-deprecated-declarations"
+      cxxflags: "-Wno-error -Wno-deprecated-declarations"
+      env:
+        # libdbusmenu's configure misdetects valgrind; force the conditional off.
+        HAVE_VALGRIND_TRUE: "#"
+        HAVE_VALGRIND_FALSE: ""
+    config-opts:
+      - --disable-static
+      - --disable-tests
+      - --disable-gtk-doc
+      - --disable-vala
+      - --disable-dumper
+      - --enable-introspection=no
+      - --with-gtk=3
+    sources:
+      # The canonical release tarball (ships a prebuilt ./configure), served
+      # from Fedora's lookaside cache — reachable everywhere, unlike launchpad's
+      # file CDN. Identical bytes: sha256 matches the upstream release.
+      - type: archive
+        url: https://src.fedoraproject.org/repo/pkgs/rpms/libdbusmenu/libdbusmenu-16.04.0.tar.gz/sha512/ee9654ac4ed94bdebc94a6db83b126784273a417a645b2881b2ba676a5f67d7fc95dd2bb37bfb0890aa47299ed73cb21ed7de8b75f3fed6b69bfd39065062241/libdbusmenu-16.04.0.tar.gz
+        sha256: b9cc4a2acd74509435892823607d966d424bd9ad5d0b00938f27240a1bfa878a
+    cleanup:
+      - "/include"
+      - "/lib/pkgconfig"
+      - "*.la"
+
+  - name: ayatana-ido
+    buildsystem: cmake-ninja
+    sources:
+      - type: git
+        url: https://github.com/AyatanaIndicators/ayatana-ido.git
+        tag: "0.10.4"
+    cleanup:
+      - "/include"
+      - "/lib/pkgconfig"
+
+  - name: libayatana-indicator
+    buildsystem: cmake-ninja
+    sources:
+      - type: git
+        url: https://github.com/AyatanaIndicators/libayatana-indicator.git
+        tag: "0.9.5"
+    cleanup:
+      - "/include"
+      - "/lib/pkgconfig"
+      - "/libexec"
+
+  - name: libayatana-appindicator
+    buildsystem: cmake-ninja
+    config-opts:
+      - -DENABLE_BINDINGS_MONO=NO
+      - -DENABLE_BINDINGS_VALA=NO
+      - -DENABLE_GTKDOC=NO
+    sources:
+      - type: git
+        url: https://github.com/AyatanaIndicators/libayatana-appindicator.git
+        tag: "0.5.94"
+    cleanup:
+      - "/include"
+      - "/lib/pkgconfig"
+
+  # ---- The application itself ----
   - name: rsync-ui
     buildsystem: simple
     sources:

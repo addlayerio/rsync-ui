@@ -1,5 +1,6 @@
 use std::collections::HashMap;
 use std::path::{Path, PathBuf};
+use std::sync::atomic::AtomicBool;
 use std::sync::{Arc, Mutex};
 
 use chrono::Local;
@@ -21,6 +22,10 @@ pub struct AppState {
     /// Currently running rsync processes keyed by run id; the `Notify` is used
     /// to request cancellation.
     pub running: Mutex<HashMap<String, Arc<Notify>>>,
+    /// Whether the system-tray icon was created successfully. When false (e.g.
+    /// no appindicator library available), close-to-tray is disabled so the
+    /// window can't become unreachable.
+    pub tray_available: AtomicBool,
 }
 
 pub fn now_iso() -> String {
