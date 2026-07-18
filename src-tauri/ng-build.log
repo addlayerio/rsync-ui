@@ -1,0 +1,19 @@
+
+> rsync-ui@0.1.0 build /home/mpanichella/TeamProjects/addlayer/rsync-ui
+> ng build
+
+Node.js version v25.9.0 detected.
+Odd numbered Node.js versions will not enter LTS status and should not be used for production. For more information, please see https://nodejs.org/en/about/previous-releases/.
+❯ Building...
+✔ Building...
+Initial chunk files   | Names         |  Raw size | Estimated transfer size
+main-SCVKSWLZ.js      | main          | 314.44 kB |                80.64 kB
+polyfills-7R4CRVNH.js | polyfills     |  34.59 kB |                11.33 kB
+styles-WOOHQAAZ.css   | styles        |   6.03 kB |                 1.61 kB
+
+                      | Initial total | 355.06 kB |                93.58 kB
+
+Application bundle generation complete. [2.067 seconds] - 2026-07-18T15:02:25.930Z
+
+Output location: /home/mpanichella/TeamProjects/addlayer/rsync-ui/dist/rsync-ui
+
