@@ -56,11 +56,11 @@
   <screenshots>
     <screenshot type="default">
       <image>https://raw.githubusercontent.com/addlayerio/rsync-ui/main/flatpak/screenshots/task-editor.png</image>
-      <caption>Configuring an rsync task</caption>
+      <caption>Configuring a task: source, destination and mode</caption>
     </screenshot>
     <screenshot>
-      <image>https://raw.githubusercontent.com/addlayerio/rsync-ui/main/flatpak/screenshots/schedule.png</image>
-      <caption>Scheduling a task and previewing the command</caption>
+      <image>https://raw.githubusercontent.com/addlayerio/rsync-ui/main/flatpak/screenshots/options.png</image>
+      <caption>Fine-grained control over every rsync option</caption>
     </screenshot>
   </screenshots>
 
