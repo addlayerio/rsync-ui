@@ -1,0 +1,47 @@
+app-id: com.rsyncui.app
+runtime: org.gnome.Platform
+runtime-version: "46"
+sdk: org.gnome.Sdk
+command: rsync-ui
+
+finish-args:
+  # Display
+  - --share=ipc
+  - --socket=wayland
+  - --socket=fallback-x11
+  - --device=dri
+  # rsync/ssh are executed on the HOST via `flatpak-spawn --host`, so they use
+  # the real rsync binary, the user's ssh keys/agent and full filesystem —
+  # this talk-name is what makes that possible.
+  - --talk-name=org.freedesktop.Flatpak
+  # Desktop notifications when a task finishes/fails.
+  - --talk-name=org.freedesktop.Notifications
+  # Harmless; the webview is local, but keep networking available.
+  - --share=network
+
+modules:
+  - name: rsync-ui
+    buildsystem: simple
+    sources:
+      # The prebuilt Debian package (downloaded by CI, renamed to rsync-ui.deb).
+      - type: file
+        path: rsync-ui.deb
+      - type: file
+        path: com.rsyncui.app.metainfo.xml
+    build-commands:
+      # Unpack the .deb (ar + tar are provided by org.gnome.Sdk).
+      - ar x rsync-ui.deb
+      - for t in data.tar.*; do tar -xf "$t"; done
+      # Binary
+      - install -Dm755 usr/bin/rsync-ui /app/bin/rsync-ui
+      # Desktop entry, renamed + re-pointed at the app-id icon
+      - install -Dm644 usr/share/applications/rsync-ui.desktop /app/share/applications/com.rsyncui.app.desktop
+      - desktop-file-edit --set-key=Icon --set-value=com.rsyncui.app /app/share/applications/com.rsyncui.app.desktop
+      # Icons (every size the .deb ships), renamed to the app-id
+      - |
+        for f in usr/share/icons/hicolor/*/apps/rsync-ui.png; do
+          size=$(basename "$(dirname "$(dirname "$f")")")
+          install -Dm644 "$f" "/app/share/icons/hicolor/$size/apps/com.rsyncui.app.png"
+        done
+      # AppStream metadata
+      - install -Dm644 com.rsyncui.app.metainfo.xml /app/share/metainfo/com.rsyncui.app.metainfo.xml

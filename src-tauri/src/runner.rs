@@ -124,8 +124,9 @@ async fn execute(
     log_path: PathBuf,
     notify: Arc<Notify>,
 ) {
-    let mut cmd = Command::new("rsync");
-    cmd.args(&args)
+    let (program, full_args) = rsync::exec_command(&args);
+    let mut cmd = Command::new(&program);
+    cmd.args(&full_args)
         .stdin(Stdio::null())
         .stdout(Stdio::piped())
         .stderr(Stdio::piped());

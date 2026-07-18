@@ -189,6 +189,25 @@ pub fn preview(program: &str, args: &[String]) -> String {
     parts.join(" ")
 }
 
+/// True when running inside a Flatpak sandbox.
+pub fn in_flatpak() -> bool {
+    std::path::Path::new("/.flatpak-info").exists()
+}
+
+/// Resolve the program + full argument list to actually execute an rsync run.
+/// Inside a Flatpak sandbox we route through `flatpak-spawn --host` so the
+/// host's rsync, ssh keys/agent and full filesystem are used; otherwise we run
+/// `rsync` directly. The `preview` string always shows the logical `rsync ...`.
+pub fn exec_command(args: &[String]) -> (String, Vec<String>) {
+    if in_flatpak() {
+        let mut full = vec!["--host".to_string(), "rsync".to_string()];
+        full.extend_from_slice(args);
+        ("flatpak-spawn".to_string(), full)
+    } else {
+        ("rsync".to_string(), args.to_vec())
+    }
+}
+
 // ---------------------------------------------------------------------------
 // Import: parse a raw rsync command line back into a task.
 // ---------------------------------------------------------------------------

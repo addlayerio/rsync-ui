@@ -1,0 +1,35 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<component type="desktop-application">
+  <id>com.rsyncui.app</id>
+  <metadata_license>MIT</metadata_license>
+  <project_license>MIT</project_license>
+  <name>rsync-ui</name>
+  <summary>Configure, run and schedule rsync tasks</summary>
+  <description>
+    <p>
+      rsync-ui is a graphical front-end for rsync. Configure source and
+      destination, every rsync option, include/exclude filters and SSH
+      transport, then run tasks on demand or on a schedule. It lives in the
+      system tray and fires scheduled tasks automatically.
+    </p>
+    <p>
+      Inside the Flatpak sandbox, rsync and ssh run on the host, so your real
+      rsync binary, SSH keys and files are used.
+    </p>
+  </description>
+  <launchable type="desktop-id">com.rsyncui.app.desktop</launchable>
+  <url type="homepage">https://github.com/addlayerio/rsync-ui</url>
+  <url type="bugtracker">https://github.com/addlayerio/rsync-ui/issues</url>
+  <developer id="io.addlayer">
+    <name>addlayer</name>
+  </developer>
+  <content_rating type="oars-1.1" />
+  <categories>
+    <category>Utility</category>
+    <category>System</category>
+  </categories>
+  <releases>
+    <release version="0.1.1" date="2026-07-18" />
+    <release version="0.1.0" date="2026-07-18" />
+  </releases>
+</component>

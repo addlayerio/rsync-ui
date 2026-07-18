@@ -89,3 +89,52 @@ jobs:
           releaseDraft: false
           prerelease: false
           args: ${{ matrix.args }}
+
+      # Hand the .deb to the Flatpak job below.
+      - name: Upload .deb artifact
+        if: matrix.platform == 'ubuntu-22.04'
+        uses: actions/upload-artifact@v4
+        with:
+          name: deb
+          path: src-tauri/target/release/bundle/deb/*.deb
+          if-no-files-found: error
+
+  # Package the Linux .deb into a Flatpak bundle and attach it to the release.
+  # This is the recommended format for immutable distros (Fedora Silverblue/
+  # Kinoite/Atomic, Bazzite, …) where you can't just `dnf install`.
+  flatpak:
+    needs: build
+    runs-on: ubuntu-22.04
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Download .deb
+        uses: actions/download-artifact@v4
+        with:
+          name: deb
+          path: flatpak
+
+      - name: Install Flatpak tooling + GNOME runtime
+        run: |
+          sudo apt-get update
+          sudo apt-get install -y flatpak flatpak-builder
+          flatpak remote-add --if-not-exists --user flathub https://flathub.org/repo/flathub.flatpakrepo
+          flatpak install --user --noninteractive flathub org.gnome.Platform//46 org.gnome.Sdk//46
+
+      - name: Build Flatpak bundle
+        env:
+          TAG: ${{ github.event.inputs.tag || github.ref_name }}
+        run: |
+          cd flatpak
+          mv *_amd64.deb rsync-ui.deb
+          flatpak-builder --user --disable-rofiles-fuse --force-clean \
+            --repo=repo build-dir com.rsyncui.app.yml
+          flatpak build-bundle repo "../rsync-ui_${TAG}_x86_64.flatpak" \
+            com.rsyncui.app --runtime-repo=https://flathub.org/repo/flathub.flatpakrepo
+
+      - name: Upload Flatpak to the release
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          TAG: ${{ github.event.inputs.tag || github.ref_name }}
+        run: gh release upload "$TAG" "rsync-ui_${TAG}_x86_64.flatpak" --repo "$GITHUB_REPOSITORY" --clobber
