@@ -1,6 +1,6 @@
 app-id: io.github.addlayerio.rsyncui
 runtime: org.gnome.Platform
-runtime-version: "46"
+runtime-version: "48"
 sdk: org.gnome.Sdk
 command: rsync-ui
 
@@ -14,7 +14,6 @@ finish-args:
   # filesystem access to sync arbitrary paths, and the ssh agent socket.
   - --share=network
   - --filesystem=host
-  - --socket=ssh-auth
   # Desktop notifications when a task finishes/fails.
   - --talk-name=org.freedesktop.Notifications
 
