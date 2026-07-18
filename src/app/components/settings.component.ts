@@ -71,7 +71,7 @@ import { IconComponent } from './icon.component';
           </div>
 
           <p class="faint" style="font-size:12px;text-align:center;margin-top:18px">
-            rsync-ui · a graphical front-end for rsync
+            RSync UI · a graphical front-end for rsync
           </p>
         }
       </div>

@@ -32,7 +32,7 @@ import { IconComponent } from './components/icon.component';
             @default {
               <div class="welcome">
                 <div class="welcome-mark"><app-icon name="refresh" [size]="34" /></div>
-                <h1>rsync-ui</h1>
+                <h1>RSync UI</h1>
                 <p class="muted">
                   Configure, run and schedule rsync tasks from a single place.<br />
                   Everything keeps running in the tray.

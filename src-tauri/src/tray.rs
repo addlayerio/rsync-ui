@@ -7,7 +7,7 @@ use crate::state::AppState;
 
 /// Build the persistent system-tray icon and its context menu.
 pub fn create_tray(app: &AppHandle) -> tauri::Result<()> {
-    let show = MenuItem::with_id(app, "show", "Show rsync-ui", true, None::<&str>)?;
+    let show = MenuItem::with_id(app, "show", "Show RSync UI", true, None::<&str>)?;
     let run_all = MenuItem::with_id(app, "run_all", "Run all scheduled now", true, None::<&str>)?;
     let separator = PredefinedMenuItem::separator(app)?;
     let quit = MenuItem::with_id(app, "quit", "Quit", true, None::<&str>)?;
@@ -21,7 +21,7 @@ pub fn create_tray(app: &AppHandle) -> tauri::Result<()> {
 
     TrayIconBuilder::with_id("main-tray")
         .icon(icon)
-        .tooltip("rsync-ui")
+        .tooltip("RSync UI")
         .menu(&menu)
         .show_menu_on_left_click(false)
         .on_menu_event(|app, event| match event.id.as_ref() {

@@ -12,7 +12,7 @@ import { IconComponent } from './icon.component';
       <div class="brand">
         <div class="brand-mark"><app-icon name="refresh" [size]="18" /></div>
         <div class="brand-text">
-          <div class="brand-title">rsync-ui</div>
+          <div class="brand-title">RSync UI</div>
           @if (info(); as i) {
             @if (i.available) {
               <div class="brand-sub" [title]="i.version">

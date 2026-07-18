@@ -111,12 +111,13 @@ modules:
       - for t in data.tar.*; do tar -xf "$t"; done
       # Binary
       - install -Dm755 usr/bin/rsync-ui /app/bin/rsync-ui
-      # Desktop entry, renamed + re-pointed at the app-id icon
-      - install -Dm644 usr/share/applications/rsync-ui.desktop /app/share/applications/com.rsyncui.app.desktop
+      # Desktop entry (globbed: its filename follows productName, e.g. with a
+      # space) -> renamed to the app-id and re-pointed at the app-id icon.
+      - install -Dm644 usr/share/applications/*.desktop /app/share/applications/com.rsyncui.app.desktop
       - desktop-file-edit --set-key=Icon --set-value=com.rsyncui.app /app/share/applications/com.rsyncui.app.desktop
       # Icons (every size the .deb ships), renamed to the app-id
       - |
-        for f in usr/share/icons/hicolor/*/apps/rsync-ui.png; do
+        for f in usr/share/icons/hicolor/*/apps/*.png; do
           size=$(basename "$(dirname "$(dirname "$f")")")
           install -Dm644 "$f" "/app/share/icons/hicolor/$size/apps/com.rsyncui.app.png"
         done

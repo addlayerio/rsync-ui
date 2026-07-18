@@ -127,7 +127,9 @@ jobs:
           TAG: ${{ github.event.inputs.tag || github.ref_name }}
         run: |
           cd flatpak
-          mv *_amd64.deb rsync-ui.deb
+          # The .deb filename follows productName (may contain a space), so
+          # rename it via a quoted loop instead of an unquoted glob.
+          for f in *_amd64.deb; do mv "$f" rsync-ui.deb; done
           flatpak-builder --user --disable-rofiles-fuse --force-clean \
             --repo=repo build-dir com.rsyncui.app.yml
           flatpak build-bundle repo "../rsync-ui_${TAG}_x86_64.flatpak" \
