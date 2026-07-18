@@ -162,9 +162,39 @@ pub fn build_args(task: &RsyncTask, dry_run: bool) -> Vec<String> {
     // Force line-buffered output so the UI receives lines promptly.
     a.push("--outbuf=L".into());
 
-    a.push(task.source.clone());
+    // Expand brace patterns in the source (e.g. "/p/{a,b,c}") into multiple
+    // source arguments, like the shell would — rsync itself is run without a
+    // shell, so it can't do this on its own.
+    for src in expand_braces(&task.source) {
+        a.push(src);
+    }
     a.push(task.destination.clone());
     a
+}
+
+/// Expand a single level of brace patterns ("a{1,2}b" -> ["a1b", "a2b"]),
+/// mirroring shell brace expansion. Only expands braces that contain a comma;
+/// anything else (including paths with literal braces) is returned unchanged.
+/// Handles multiple brace groups via recursion on the suffix.
+pub fn expand_braces(s: &str) -> Vec<String> {
+    if let Some(open) = s.find('{') {
+        if let Some(close_rel) = s[open + 1..].find('}') {
+            let close = open + 1 + close_rel;
+            let inner = &s[open + 1..close];
+            if inner.contains(',') {
+                let prefix = &s[..open];
+                let suffix = &s[close + 1..];
+                let mut out = Vec::new();
+                for part in inner.split(',') {
+                    for tail in expand_braces(suffix) {
+                        out.push(format!("{prefix}{part}{tail}"));
+                    }
+                }
+                return out;
+            }
+        }
+    }
+    vec![s.to_string()]
 }
 
 /// POSIX-ish shell quoting for building a copy/paste-able preview string.
@@ -579,5 +609,33 @@ mod tests {
         let t = parse_command("rsync -a --chmod=D755,F644 /a/ /b/");
         assert!(t.options.archive);
         assert_eq!(t.options.extra_args, vec!["--chmod=D755,F644"]);
+    }
+
+    #[test]
+    fn braces_expand_like_the_shell() {
+        assert_eq!(expand_braces("/p/a"), vec!["/p/a"]);
+        // No comma -> left as-is (literal path with braces is preserved).
+        assert_eq!(expand_braces("/p/{a}"), vec!["/p/{a}"]);
+        assert_eq!(
+            expand_braces("user@host:/home/me/{TeamProjects,.claude,.ssh}"),
+            vec![
+                "user@host:/home/me/TeamProjects",
+                "user@host:/home/me/.claude",
+                "user@host:/home/me/.ssh",
+            ]
+        );
+    }
+
+    #[test]
+    fn build_args_expands_source_braces() {
+        let mut t = task();
+        t.source = "host:/home/me/{a,b,c}".into();
+        let args = build_args(&t, false);
+        // Destination is last; the three sources precede it.
+        assert_eq!(args[args.len() - 1], "/dst/");
+        assert!(args.contains(&"host:/home/me/a".to_string()));
+        assert!(args.contains(&"host:/home/me/b".to_string()));
+        assert!(args.contains(&"host:/home/me/c".to_string()));
+        assert!(!args.iter().any(|x| x.contains('{')));
     }
 }
