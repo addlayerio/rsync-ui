@@ -1,6 +1,6 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <component type="desktop-application">
-  <id>io.github.addlayerio.rsync_ui</id>
+  <id>io.github.addlayerio.rsyncui</id>
   <metadata_license>MIT</metadata_license>
   <project_license>MIT</project_license>
   <name>RSync UI</name>
@@ -23,7 +23,7 @@
     </ul>
   </description>
 
-  <launchable type="desktop-id">io.github.addlayerio.rsync_ui.desktop</launchable>
+  <launchable type="desktop-id">io.github.addlayerio.rsyncui.desktop</launchable>
 
   <url type="homepage">https://github.com/addlayerio/rsync-ui</url>
   <url type="bugtracker">https://github.com/addlayerio/rsync-ui/issues</url>

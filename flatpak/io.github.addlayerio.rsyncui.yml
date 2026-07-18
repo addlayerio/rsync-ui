@@ -1,4 +1,4 @@
-app-id: io.github.addlayerio.rsync_ui
+app-id: io.github.addlayerio.rsyncui
 runtime: org.gnome.Platform
 runtime-version: "46"
 sdk: org.gnome.Sdk
@@ -130,16 +130,16 @@ modules:
       - type: file
         path: rsync-ui.deb
       - type: file
-        path: io.github.addlayerio.rsync_ui.metainfo.xml
+        path: io.github.addlayerio.rsyncui.metainfo.xml
     build-commands:
       - ar x rsync-ui.deb
       - for t in data.tar.*; do tar -xf "$t"; done
       - install -Dm755 usr/bin/rsync-ui /app/bin/rsync-ui
-      - install -Dm644 usr/share/applications/*.desktop /app/share/applications/io.github.addlayerio.rsync_ui.desktop
-      - desktop-file-edit --set-key=Icon --set-value=io.github.addlayerio.rsync_ui /app/share/applications/io.github.addlayerio.rsync_ui.desktop
+      - install -Dm644 usr/share/applications/*.desktop /app/share/applications/io.github.addlayerio.rsyncui.desktop
+      - desktop-file-edit --set-key=Icon --set-value=io.github.addlayerio.rsyncui /app/share/applications/io.github.addlayerio.rsyncui.desktop
       - |
         for f in usr/share/icons/hicolor/*/apps/*.png; do
           size=$(basename "$(dirname "$(dirname "$f")")")
-          install -Dm644 "$f" "/app/share/icons/hicolor/$size/apps/io.github.addlayerio.rsync_ui.png"
+          install -Dm644 "$f" "/app/share/icons/hicolor/$size/apps/io.github.addlayerio.rsyncui.png"
         done
-      - install -Dm644 io.github.addlayerio.rsync_ui.metainfo.xml /app/share/metainfo/io.github.addlayerio.rsync_ui.metainfo.xml
+      - install -Dm644 io.github.addlayerio.rsyncui.metainfo.xml /app/share/metainfo/io.github.addlayerio.rsyncui.metainfo.xml

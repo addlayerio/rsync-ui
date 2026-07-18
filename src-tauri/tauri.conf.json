@@ -3,7 +3,7 @@
   "productName": "RSync UI",
   "mainBinaryName": "rsync-ui",
   "version": "0.2.0",
-  "identifier": "io.github.addlayerio.rsync_ui",
+  "identifier": "io.github.addlayerio.rsyncui",
   "build": {
     "beforeDevCommand": "pnpm start",
     "devUrl": "http://localhost:1420",
