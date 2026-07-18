@@ -48,7 +48,8 @@ pnpm tauri build    # produces a bundled binary (.deb / AppImage on Linux)
 ## Where data is stored
 
 Everything lives in the per-user app data dir
-(`~/.local/share/com.rsyncui.app/` on Linux):
+(`~/.local/share/io.github.addlayerio.rsync_ui/` natively, or
+`~/.var/app/io.github.addlayerio.rsync_ui/data/…` under Flatpak):
 
 - `store.json` — tasks, run history and settings.
 - `logs/<run-id>.log` — full output of each run.

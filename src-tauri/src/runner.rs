@@ -124,9 +124,10 @@ async fn execute(
     log_path: PathBuf,
     notify: Arc<Notify>,
 ) {
-    let (program, full_args) = rsync::exec_command(&args);
-    let mut cmd = Command::new(&program);
-    cmd.args(&full_args)
+    // `rsync` resolves to the bundled binary inside Flatpak (on PATH) or the
+    // system binary natively.
+    let mut cmd = Command::new("rsync");
+    cmd.args(&args)
         .stdin(Stdio::null())
         .stdout(Stdio::piped())
         .stderr(Stdio::piped());

@@ -131,9 +131,9 @@ jobs:
           # rename it via a quoted loop instead of an unquoted glob.
           for f in *_amd64.deb; do mv "$f" rsync-ui.deb; done
           flatpak-builder --user --disable-rofiles-fuse --force-clean \
-            --repo=repo build-dir com.rsyncui.app.yml
+            --repo=repo build-dir io.github.addlayerio.rsync_ui.yml
           flatpak build-bundle repo "../rsync-ui_${TAG}_x86_64.flatpak" \
-            com.rsyncui.app --runtime-repo=https://flathub.org/repo/flathub.flatpakrepo
+            io.github.addlayerio.rsync_ui --runtime-repo=https://flathub.org/repo/flathub.flatpakrepo
 
       - name: Upload Flatpak to the release
         env:

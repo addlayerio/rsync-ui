@@ -1,4 +1,4 @@
-app-id: com.rsyncui.app
+app-id: io.github.addlayerio.rsync_ui
 runtime: org.gnome.Platform
 runtime-version: "46"
 sdk: org.gnome.Sdk
@@ -10,14 +10,13 @@ finish-args:
   - --socket=wayland
   - --socket=fallback-x11
   - --device=dri
-  # rsync/ssh are executed on the HOST via `flatpak-spawn --host`, so they use
-  # the real rsync binary, the user's ssh keys/agent and full filesystem —
-  # this talk-name is what makes that possible.
-  - --talk-name=org.freedesktop.Flatpak
+  # rsync/ssh run INSIDE the sandbox now (bundled below), so they need network,
+  # filesystem access to sync arbitrary paths, and the ssh agent socket.
+  - --share=network
+  - --filesystem=host
+  - --socket=ssh-auth
   # Desktop notifications when a task finishes/fails.
   - --talk-name=org.freedesktop.Notifications
-  # Harmless; the webview is local, but keep networking available.
-  - --share=network
 
 modules:
   # ---- Build-time helper: intltool (not in the GNOME SDK) ----
@@ -30,15 +29,12 @@ modules:
         sha256: 67c74d94196b153b774ab9f89b2fa6c6ba79352407037c8c14d5aeb334e959cd
 
   # ---- System-tray stack (libayatana-appindicator) ----
-  # The GNOME runtime does not ship these, so the tray binding would fail to
-  # load its dynamic library and the app would crash on startup. Bundle them.
   - name: libdbusmenu
     buildsystem: autotools
     build-options:
       cflags: "-Wno-error -Wno-deprecated-declarations"
       cxxflags: "-Wno-error -Wno-deprecated-declarations"
       env:
-        # libdbusmenu's configure misdetects valgrind; force the conditional off.
         HAVE_VALGRIND_TRUE: "#"
         HAVE_VALGRIND_FALSE: ""
     config-opts:
@@ -50,9 +46,6 @@ modules:
       - --enable-introspection=no
       - --with-gtk=3
     sources:
-      # The canonical release tarball (ships a prebuilt ./configure), served
-      # from Fedora's lookaside cache — reachable everywhere, unlike launchpad's
-      # file CDN. Identical bytes: sha256 matches the upstream release.
       - type: archive
         url: https://src.fedoraproject.org/repo/pkgs/rpms/libdbusmenu/libdbusmenu-16.04.0.tar.gz/sha512/ee9654ac4ed94bdebc94a6db83b126784273a417a645b2881b2ba676a5f67d7fc95dd2bb37bfb0890aa47299ed73cb21ed7de8b75f3fed6b69bfd39065062241/libdbusmenu-16.04.0.tar.gz
         sha256: b9cc4a2acd74509435892823607d966d424bd9ad5d0b00938f27240a1bfa878a
@@ -96,30 +89,57 @@ modules:
       - "/include"
       - "/lib/pkgconfig"
 
+  # ---- rsync + ssh (the app shells out to these) ----
+  - name: rsync
+    buildsystem: autotools
+    config-opts:
+      - --with-included-popt
+      - --disable-md2man
+      - --disable-xxhash
+      - --disable-zstd
+      - --disable-lz4
+    sources:
+      - type: archive
+        url: https://download.samba.org/pub/rsync/src/rsync-3.4.1.tar.gz
+        sha256: 2924bcb3a1ed8b551fc101f740b9f0fe0a202b115027647cf69850d65fd88c52
+    cleanup:
+      - "/share/man"
+
+  - name: openssh
+    buildsystem: autotools
+    config-opts:
+      - --without-pam
+      - --with-ssl-dir=/usr
+      - --sysconfdir=/app/etc/ssh
+    make-install-args:
+      - install-nokeys
+    sources:
+      - type: archive
+        url: https://cdn.openbsd.org/pub/OpenBSD/OpenSSH/portable/openssh-9.9p2.tar.gz
+        sha256: 91aadb603e08cc285eddf965e1199d02585fa94d994d6cae5b41e1721e215673
+    cleanup:
+      - "/etc"
+      - "/sbin"
+      - "/share/man"
+      - "/libexec"
+
   # ---- The application itself ----
   - name: rsync-ui
     buildsystem: simple
     sources:
-      # The prebuilt Debian package (downloaded by CI, renamed to rsync-ui.deb).
       - type: file
         path: rsync-ui.deb
       - type: file
-        path: com.rsyncui.app.metainfo.xml
+        path: io.github.addlayerio.rsync_ui.metainfo.xml
     build-commands:
-      # Unpack the .deb (ar + tar are provided by org.gnome.Sdk).
       - ar x rsync-ui.deb
       - for t in data.tar.*; do tar -xf "$t"; done
-      # Binary
       - install -Dm755 usr/bin/rsync-ui /app/bin/rsync-ui
-      # Desktop entry (globbed: its filename follows productName, e.g. with a
-      # space) -> renamed to the app-id and re-pointed at the app-id icon.
-      - install -Dm644 usr/share/applications/*.desktop /app/share/applications/com.rsyncui.app.desktop
-      - desktop-file-edit --set-key=Icon --set-value=com.rsyncui.app /app/share/applications/com.rsyncui.app.desktop
-      # Icons (every size the .deb ships), renamed to the app-id
+      - install -Dm644 usr/share/applications/*.desktop /app/share/applications/io.github.addlayerio.rsync_ui.desktop
+      - desktop-file-edit --set-key=Icon --set-value=io.github.addlayerio.rsync_ui /app/share/applications/io.github.addlayerio.rsync_ui.desktop
       - |
         for f in usr/share/icons/hicolor/*/apps/*.png; do
           size=$(basename "$(dirname "$(dirname "$f")")")
-          install -Dm644 "$f" "/app/share/icons/hicolor/$size/apps/com.rsyncui.app.png"
+          install -Dm644 "$f" "/app/share/icons/hicolor/$size/apps/io.github.addlayerio.rsync_ui.png"
         done
-      # AppStream metadata
-      - install -Dm644 com.rsyncui.app.metainfo.xml /app/share/metainfo/com.rsyncui.app.metainfo.xml
+      - install -Dm644 io.github.addlayerio.rsync_ui.metainfo.xml /app/share/metainfo/io.github.addlayerio.rsync_ui.metainfo.xml

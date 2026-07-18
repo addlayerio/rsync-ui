@@ -196,8 +196,7 @@ pub fn set_autostart(app: AppHandle, enabled: bool) -> Result<bool, String> {
 
 #[tauri::command]
 pub fn check_rsync() -> RsyncInfo {
-    let (program, args) = rsync::exec_command(&["--version".to_string()]);
-    match std::process::Command::new(program).args(args).output() {
+    match std::process::Command::new("rsync").arg("--version").output() {
         Ok(output) if output.status.success() => {
             let text = String::from_utf8_lossy(&output.stdout);
             let version = text.lines().next().unwrap_or("").trim().to_string();
